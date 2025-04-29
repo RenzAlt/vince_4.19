@@ -822,8 +822,6 @@ static int32_t nvt_flash_proc_init(void)
 #if WAKEUP_GESTURE
 
 
-static struct wakeup_source gesture_wakelock;
-
 void nvt_ts_wakeup_gesture_report(uint8_t gesture_id)
 {
 	uint32_t keycode = 0;
@@ -1102,7 +1100,7 @@ static irqreturn_t nvt_ts_irq_handler(int32_t irq, void *dev_id)
 
 #if WAKEUP_GESTURE
 	if (bTouchIsAwake == 0) {
-		__pm_wakeup_event(&gesture_wakelock, 5000);
+		__pm_wakeup_event(ts->gesture_wakelock, 5000);
 	}
 #endif
 
@@ -1296,7 +1294,7 @@ static int32_t nvt_ts_probe(struct i2c_client *client, const struct i2c_device_i
 	for (retry = 0; retry < (sizeof(gesture_key_array) / sizeof(gesture_key_array[0])); retry++) {
 		input_set_capability(ts->input_dev, EV_KEY, gesture_key_array[retry]);
 	}
-	wakeup_source_init(&gesture_wakelock, "poll-wake-lock");
+	ts->gesture_wakelock = wakeup_source_register(NULL, "poll-wake-lock");
 	ts->input_dev->event = NVT_gesture_switch;
 
 #endif
