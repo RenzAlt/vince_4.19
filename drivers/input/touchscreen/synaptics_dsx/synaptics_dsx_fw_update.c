@@ -5226,7 +5226,7 @@ static ssize_t fwu_sysfs_do_recovery_store (struct device *dev,
 	if (!mutex_trylock (&fwu_sysfs_mutex))
 
 
-	if (sscanf (buf, "%u", &input) != 1) {
+	if (kstrtouint(buf, 10, &input) != 1) {
 		retval = -EINVAL;
 
 	}
@@ -5274,7 +5274,7 @@ static ssize_t fwu_sysfs_do_reflash_store (struct device *dev,
 	if (!mutex_trylock (&fwu_sysfs_mutex))
 
 
-	if (sscanf (buf, "%u", &input) != 1) {
+	if (kstrtouint(buf, 10, &input) != 1) {
 		retval = -EINVAL;
 
 	}
@@ -5387,7 +5387,7 @@ static ssize_t fwu_sysfs_read_config_store (struct device *dev,
 	unsigned int input;
 	struct synaptics_rmi4_data *rmi4_data = fwu->rmi4_data;
 
-	if (sscanf (buf, "%u", &input) != 1)
+	if (kstrtouint(buf, 10, &input) != 1)
 		return -EINVAL;
 
 	if (input != 1)
@@ -5625,7 +5625,7 @@ static ssize_t fwu_sysfs_write_guest_code_store (struct device *dev,
 	if (!mutex_trylock (&fwu_sysfs_mutex))
 		return -EBUSY;
 
-	if (sscanf (buf, "%u", &input) != 1) {
+	if (kstrtouint(buf, 10, &input) != 1) {
 		retval = -EINVAL;
 		goto exit;
 	}
@@ -5767,7 +5767,7 @@ static ssize_t fwu_sysfs_write_lockdown_code_store (struct device *dev,
 
 	for (i = 0; i < lockdown_data_size; i++) {
 		memcpy (temp, (buf + 2 * i), sizeof (temp));
-		if (sscanf (temp, "%02x", &ld_val) == 1)
+		if (kstrtoint(temp, 16, &ld_val) == 1)
 			 *(lockdown_data + i) = ld_val & 0xff;
 	}
 
