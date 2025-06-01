@@ -1825,7 +1825,7 @@ static void synaptics_rmi4_sensor_report (struct synaptics_rmi4_data *rmi4_data,
 
 exit:
 	kfree(data);
-	return retval;
+	return;
 }
 
 static irqreturn_t synaptics_rmi4_irq (int irq, void *data)
@@ -2236,7 +2236,7 @@ static int synaptics_rmi4_f11_init (struct synaptics_rmi4_data *rmi4_data,
 		offset += 1;
 
 	/* data 33 34 */
-	if (query_0_5->has_query_27 && query_27.f11_query27_b0)
+	if (query_0_5->has_query_27 && query_27->f11_query27_b0)
 		offset += 2;
 
 	/* data 35 */
@@ -3058,7 +3058,7 @@ static int synaptics_rmi4_check_status (struct synaptics_rmi4_data *rmi4_data,
 	return 0;
 }
 
-static int synaptics_rmi4_set_configured (struct synaptics_rmi4_data *rmi4_data)
+static void synaptics_rmi4_set_configured (struct synaptics_rmi4_data *rmi4_data)
 {
 	int retval;
 	unsigned char *device_ctrl = NULL;
@@ -3095,7 +3095,7 @@ static int synaptics_rmi4_set_configured (struct synaptics_rmi4_data *rmi4_data)
 
 exit:
 	kfree(device_ctrl);
-	return retval;
+	return;
 }
 
 static int synaptics_rmi4_alloc_fh (struct synaptics_rmi4_fn **fhandler,
