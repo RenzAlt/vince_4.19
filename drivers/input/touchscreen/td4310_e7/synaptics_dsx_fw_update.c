@@ -51,8 +51,6 @@
 
 #define DO_STARTUP_FW_UPDATE
 
-#define SYNAPTICS_LOCK_DOWN_INFO
-
 #ifdef DO_STARTUP_FW_UPDATE
 #ifdef CONFIG_FB
 #define WAIT_FOR_FB_READY
@@ -202,8 +200,10 @@ static ssize_t fwu_sysfs_write_guest_code_store (struct device *dev,
 static ssize_t fwu_sysfs_read_guest_serialization_show (struct device *dev,
 		struct device_attribute *attr, char *buf);
 
+#if defined(SYNAPTICS_LOCK_DOWN_INFO)
 static ssize_t fwu_sysfs_read_panel_color_show (struct device *dev,
 		struct device_attribute *attr, char *buf);
+#endif
 
 #ifdef SYNA_TDDI
 static ssize_t fwu_sysfs_write_lockdown_code_store (struct device *dev,
@@ -836,9 +836,11 @@ static struct device_attribute attrs[] = {
 	__ATTR(guestserialization, 0444,
 			fwu_sysfs_read_guest_serialization_show,
 			synaptics_rmi4_store_error),
+#if defined(SYNAPTICS_LOCK_DOWN_INFO)
 	__ATTR(panelcolor, 0444,
 			fwu_sysfs_read_panel_color_show,
 			NULL),
+#endif
 
 #ifdef SYNA_TDDI
 	__ATTR(lockdowncode, 0664,
@@ -850,11 +852,11 @@ static struct device_attribute attrs[] = {
 
 static struct synaptics_rmi4_fwu_handle *fwu;
 
-#if defined (SYNAPTICS_LOCK_DOWN_INFO)
-#define CTP_PROC_LOCKDOWN_FILE "tp_lockdown_info"
 #ifdef CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_FW_UPDATE_EXTRA_SYSFS
 DEFINE_MUTEX (fwu_sysfs_mutex);
 #endif
+#if defined (SYNAPTICS_LOCK_DOWN_INFO)
+#define CTP_PROC_LOCKDOWN_FILE "tp_lockdown_info"
 static struct proc_dir_entry *ctp_lockdown_status_proc = NULL;
 static char tp_lockdown_info[128];
 
@@ -3953,6 +3955,7 @@ exit:
 	return retval;
 }
 
+#if defined(SYNAPTICS_LOCK_DOWN_INFO)
 static int fwu_do_read_customer_serialization_data (void)
 {
 	int ii;
@@ -4037,8 +4040,7 @@ exit:
 
 	return retval;
 }
-
-
+#endif
 
 #ifdef SYNA_TDDI
 static int fwu_do_read_tddi_lockdown_data (void)
@@ -4506,7 +4508,10 @@ exit:
 	return retval;
 }
 #endif
+
+#if defined(SYNAPTICS_LOCK_DOWN_INFO)
 static char tp_info_summary[80] = "";
+#endif
 
 static int fwu_start_reflash (void)
 {
@@ -5683,6 +5688,7 @@ exit:
 	return retval;
 }
 
+#if defined(SYNAPTICS_LOCK_DOWN_INFO)
 static ssize_t fwu_sysfs_read_panel_color_show (struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -5715,6 +5721,7 @@ static ssize_t fwu_sysfs_read_panel_color_show (struct device *dev,
 
 	return ret;
 }
+#endif
 
 #ifdef SYNA_TDDI
 static ssize_t fwu_sysfs_read_lockdown_code_show (struct device *dev,
@@ -5907,6 +5914,7 @@ static int synaptics_rmi4_fwu_init (struct synaptics_rmi4_data *rmi4_data)
 #endif
 #endif
 
+#if defined(SYNAPTICS_LOCK_DOWN_INFO)
 printk ("before get_tddi_lockdown_data");
 
 	if (get_tddi_lockdown_data (lockdown, 20) < 0) {
@@ -5920,7 +5928,7 @@ printk ("before get_tddi_lockdown_data");
 		if (ctp_lockdown_status_proc == NULL) {
 			printk ("tpd, create_proc_entry ctp_lockdown_status_proc failed\n");
 		}
-
+#endif
 
 #ifdef F51_DISCRETE_FORCE
 	fwu_read_flash_status ();
