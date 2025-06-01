@@ -46,12 +46,7 @@
 
 #define SYN_I2C_RETRY_TIMES 10
 
-/*
-#define I2C_BURST_LIMIT 255
-*/
-/*
-#define XFER_MSGS_LIMIT 8
-*/
+#define rd_msgs  1
 
 static unsigned char *wr_buf;
 
@@ -283,7 +278,7 @@ static int synaptics_rmi4_i2c_set_page(struct synaptics_rmi4_data *rmi4_data,
 	unsigned char *buf = NULL;
 	unsigned char page;
 	struct i2c_client *i2c = to_i2c_client(rmi4_data->pdev->dev.parent);
-	struct i2c_msg msg[1];
+	struct i2c_msg msg[2];
 
 	buf = kcalloc(PAGE_SELECT_LEN, sizeof(char), GFP_KERNEL);
 	if (!buf) {
@@ -329,15 +324,9 @@ exit:
 static int synaptics_rmi4_i2c_read(struct synaptics_rmi4_data *rmi4_data,
 		unsigned short addr, unsigned char *data, unsigned int length)
 {
-	int retval;
+	int retval = 0;
 	unsigned char retry;
 	unsigned char *buf = NULL;
-#ifdef I2C_BURST_LIMIT
-	unsigned int ii;
-	unsigned int rd_msgs = ((length - 1) / I2C_BURST_LIMIT) + 1;
-#else
-	unsigned int rd_msgs = 1;
-#endif
 	unsigned char index = 0;
 	unsigned char xfer_msgs;
 	unsigned char remaining_msgs;
@@ -366,18 +355,6 @@ static int synaptics_rmi4_i2c_read(struct synaptics_rmi4_data *rmi4_data,
 	msg[0].flags = 0;
 	msg[0].len = 1;
 	msg[0].buf = buf;
-
-#ifdef I2C_BURST_LIMIT
-	for (ii = 0; ii < (rd_msgs - 1); ii++) {
-		msg[ii + 1].addr = hw_if.board_data->i2c_addr;
-		msg[ii + 1].flags = I2C_M_RD;
-		msg[ii + 1].len = I2C_BURST_LIMIT;
-		msg[ii + 1].buf = &data[data_offset];
-		data_offset += I2C_BURST_LIMIT;
-		remaining_length -= I2C_BURST_LIMIT;
-	}
-#endif
-
 	msg[rd_msgs].addr = hw_if.board_data->i2c_addr;
 	msg[rd_msgs].flags = I2C_M_RD;
 	msg[rd_msgs].len = (unsigned short)remaining_length;
@@ -388,14 +365,7 @@ static int synaptics_rmi4_i2c_read(struct synaptics_rmi4_data *rmi4_data,
 	remaining_msgs = rd_msgs + 1;
 
 	while (remaining_msgs) {
-#ifdef XFER_MSGS_LIMIT
-		if (remaining_msgs > XFER_MSGS_LIMIT)
-			xfer_msgs = XFER_MSGS_LIMIT;
-		else
-			xfer_msgs = remaining_msgs;
-#else
 		xfer_msgs = remaining_msgs;
-#endif
 		for (retry = 0; retry < SYN_I2C_RETRY_TIMES; retry++) {
 			retval = i2c_transfer(adap, &msg[index], xfer_msgs);
 			if (retval == xfer_msgs)
@@ -410,10 +380,6 @@ static int synaptics_rmi4_i2c_read(struct synaptics_rmi4_data *rmi4_data,
 				synaptics_rmi4_i2c_check_addr(rmi4_data, i2c);
 				i2c_addr = hw_if.board_data->i2c_addr;
 				msg[0].addr = i2c_addr;
-#ifdef I2C_BURST_LIMIT
-				for (ii = 0; ii < (rd_msgs - 1); ii++)
-					msg[ii + 1].addr = i2c_addr;
-#endif
 				msg[rd_msgs].addr = i2c_addr;
 			}
 		}
@@ -444,7 +410,7 @@ static int synaptics_rmi4_i2c_write(struct synaptics_rmi4_data *rmi4_data,
 	int retval;
 	unsigned char retry;
 	struct i2c_client *i2c = to_i2c_client(rmi4_data->pdev->dev.parent);
-	struct i2c_msg msg[1];
+	struct i2c_msg msg[2];
 
 	mutex_lock(&rmi4_data->rmi4_io_ctrl_mutex);
 
