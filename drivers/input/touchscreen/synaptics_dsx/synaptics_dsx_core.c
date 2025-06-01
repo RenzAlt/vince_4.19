@@ -1821,7 +1821,7 @@ static int synaptics_rmi4_sensor_report (struct synaptics_rmi4_data *rmi4_data,
 
 exit:
 	kfree(data);
-	return;
+	return retval;
 }
 
 static irqreturn_t synaptics_rmi4_irq (int irq, void *data)
