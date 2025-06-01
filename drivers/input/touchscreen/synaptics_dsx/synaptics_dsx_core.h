@@ -446,7 +446,7 @@ struct synaptics_rmi4_data {
 			bool rebuild);
 	int (*irq_enable)(struct synaptics_rmi4_data *rmi4_data, bool enable,
 			bool attn_only);
-	void (*sleep_enable)(struct synaptics_rmi4_data *rmi4_data,
+	int (*sleep_enable)(struct synaptics_rmi4_data *rmi4_data,
 			bool enable);
 	void (*report_touch)(struct synaptics_rmi4_data *rmi4_data,
 			struct synaptics_rmi4_fn *fhandler);
