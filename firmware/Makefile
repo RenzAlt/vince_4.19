@@ -23,7 +23,6 @@ fw-external-y := $(subst $(quote),,$(CONFIG_EXTRA_FIRMWARE))
 
 # HMI_L6653_A01
 fw-shipped-$(CONFIG_TOUCHSCREEN_TD4310_E7) += synaptics/startup_fw_update.img
-fw-shipped-$(CONFIG_TOUCHSCREEN_TD4310_LANSI_E7) += synaptics/startup_fw_update_lansi.img
 
 fw-shipped-all := $(fw-shipped-y) $(fw-shipped-m) $(fw-shipped-)
 
