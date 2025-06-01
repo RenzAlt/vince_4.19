@@ -3,9 +3,9 @@
  *
  * Copyright (C) 2012-2016 Synaptics Incorporated. All rights reserved.
  *
- * Copyright (c) 2018-2019 The Linux Foundation. All rights reserved.
  * Copyright (C) 2012 Alexandra Chin <alexandra.chin@tw.synaptics.com>
  * Copyright (C) 2012 Scott Lin <scott.lin@tw.synaptics.com>
+ * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -322,7 +322,7 @@ static ssize_t rmidev_sysfs_open_store(struct device *dev,
 	unsigned int input;
 	struct synaptics_rmi4_data *rmi4_data = rmidev->rmi4_data;
 
-	if (kstrtouint(buf, 10, &input) != 1)
+	if (sscanf(buf, "%u", &input) != 1)
 		return -EINVAL;
 
 	if (input != 1)
@@ -353,7 +353,7 @@ static ssize_t rmidev_sysfs_release_store(struct device *dev,
 	unsigned int input;
 	struct synaptics_rmi4_data *rmi4_data = rmidev->rmi4_data;
 
-	if (kstrtouint(buf, 10, &input) != 1)
+	if (sscanf(buf, "%u", &input) != 1)
 		return -EINVAL;
 
 	if (input != 1)
@@ -393,7 +393,7 @@ static ssize_t rmidev_sysfs_pid_store(struct device *dev,
 	unsigned int input;
 	struct synaptics_rmi4_data *rmi4_data = rmidev->rmi4_data;
 
-	if (kstrtouint(buf, 10, &input) != 1)
+	if (sscanf(buf, "%u", &input) != 1)
 		return -EINVAL;
 
 	rmidev->pid = input;
@@ -416,7 +416,7 @@ static ssize_t rmidev_sysfs_term_store(struct device *dev,
 {
 	unsigned int input;
 
-	if (kstrtouint(buf, 10, &input) != 1)
+	if (sscanf(buf, "%u", &input) != 1)
 		return -EINVAL;
 
 	if (input != 1)
@@ -439,7 +439,7 @@ static ssize_t rmidev_sysfs_intr_mask_store(struct device *dev,
 {
 	unsigned int input;
 
-	if (kstrtouint(buf, 10, &input) != 1)
+	if (sscanf(buf, "%u", &input) != 1)
 		return -EINVAL;
 
 	rmidev->intr_mask = (unsigned char)input;
@@ -458,7 +458,7 @@ static ssize_t rmidev_sysfs_concurrent_store(struct device *dev,
 {
 	unsigned int input;
 
-	if (kstrtouint(buf, 10, &input) != 1)
+	if (sscanf(buf, "%u", &input) != 1)
 		return -EINVAL;
 
 	rmidev->concurrent = input > 0 ? true : false;
@@ -582,8 +582,9 @@ static ssize_t rmidev_read(struct file *filp, char __user *buf,
 		retval = 0;
 		goto clean_up;
 	}
-	address = (unsigned short)(*f_pos);
 
+	address = (unsigned short)(*f_pos);
+	
 	rmidev_allocate_buffer(count);
 
 	retval = synaptics_rmi4_reg_read(rmidev->rmi4_data,
@@ -659,13 +660,14 @@ static ssize_t rmidev_write(struct file *filp, const char __user *buf,
 		retval = 0;
 		goto unlock;
 	}
+
 	rmidev_allocate_buffer(count);
 
 	if (copy_from_user(rmidev->tmpbuf, buf, count)) {
-		retval = -EFAULT;
+		return -EFAULT;
 		goto unlock;
 	}
-
+		
 	retval = synaptics_rmi4_reg_write(rmidev->rmi4_data,
 			*f_pos,
 			rmidev->tmpbuf,
