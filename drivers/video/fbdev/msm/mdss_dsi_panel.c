@@ -27,7 +27,6 @@
 #define VSYNC_DELAY msecs_to_jiffies(17)
 
 char g_lcd_id[128];
-struct mdss_dsi_ctrl_pdata *ctrl_pdata_whitepoint;
 EXPORT_SYMBOL(g_lcd_id);
 
 bool ESD_TE_status = false;
@@ -3065,38 +3064,6 @@ static int msm_lcd_name_create_sysfs(void){
    return 0;
 }
 
-static ssize_t mdss_fb_get_whitepoint(struct device *dev,
-				struct device_attribute *attr, char *buf)
-{
-	struct mdss_dsi_ctrl_pdata *ctrl = NULL;
-	int val0 =0;
-	int val1 = 0;
-	ssize_t ret = 0;
-
-	mdss_dsi_read_reg(ctrl,0xa1,&val0,&val1);
-	ret = snprintf(buf, PAGE_SIZE, "val0=%d,val1=%d\n",val0,val1);
-
-	return ret;
-}
-
-static DEVICE_ATTR(whitepoint, 0644, mdss_fb_get_whitepoint,NULL );
-static struct kobject *msm_whitepoint;
-static int msm_whitepoint_create_sysfs(void){
-   int ret;
-   msm_whitepoint=kobject_create_and_add("android_whitepoint",NULL);
-   if(msm_whitepoint==NULL){
-     pr_info("msm_whitepoint_create_sysfs_ failed\n");
-     ret=-ENOMEM;
-     return ret;
-   }
-   ret=sysfs_create_file(msm_whitepoint,&dev_attr_whitepoint.attr);
-   if(ret){
-    pr_info("%s failed \n",__func__);
-    kobject_del(msm_whitepoint);
-   }
-   return 0;
-}
-
 int mdss_dsi_panel_init(struct device_node *node,
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata,
 	int ndx)
@@ -3145,9 +3112,7 @@ int mdss_dsi_panel_init(struct device_node *node,
 	ctrl_pdata->panel_data.apply_display_setting =
 			mdss_dsi_panel_apply_display_setting;
 	ctrl_pdata->switch_mode = mdss_dsi_panel_switch_mode;
-	ctrl_pdata_whitepoint = ctrl_pdata;
 	msm_lcd_name_create_sysfs();
-	msm_whitepoint_create_sysfs();
 
 	return 0;
 }
