@@ -285,7 +285,7 @@ static int synaptics_rmi4_i2c_set_page(struct synaptics_rmi4_data *rmi4_data,
 	struct i2c_client *i2c = to_i2c_client(rmi4_data->pdev->dev.parent);
 	struct i2c_msg msg[1];
 
-	buf = kcalloc(PAGE_SELECT_LEN, sizeof(char), GFP_KERNEL);Add commentMore actions
+	buf = kcalloc(PAGE_SELECT_LEN, sizeof(char), GFP_KERNEL);
 	if (!buf) {
 		retval = -ENOMEM;
 		goto exit;

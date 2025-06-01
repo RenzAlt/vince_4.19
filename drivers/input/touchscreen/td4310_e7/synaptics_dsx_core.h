@@ -290,7 +290,7 @@ struct synaptics_rmi4_device_info {
 	struct list_head support_fn_list;
 };
 
-struct synaptics_rmi4_f01_device_status {Add commentMore actions
+struct synaptics_rmi4_f01_device_status {
 	union {
 		struct {
 			unsigned char status_code:4;
