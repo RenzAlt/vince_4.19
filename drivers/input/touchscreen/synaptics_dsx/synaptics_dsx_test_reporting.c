@@ -1885,8 +1885,6 @@ static void test_set_report_size (void)
 	default:
 		f54->report_size = 0;
 	}
-
-	return;
 }
 
 static int test_set_interrupt (bool set)
@@ -2310,8 +2308,6 @@ static void test_timeout_work (struct work_struct *work)
 
 exit:
 	mutex_unlock (&f54->status_mutex);
-
-	return;
 }
 
 static enum hrtimer_restart test_get_report_timeout (struct hrtimer *timer)
@@ -5200,7 +5196,6 @@ exit:
 		f54->report_size = 0;
 
 	f54->status = retval;
-	return;
 }
 
 static void test_remove_sysfs (void)
@@ -5208,8 +5203,6 @@ static void test_remove_sysfs (void)
 	sysfs_remove_group (f54->sysfs_dir, &attr_group);
 	sysfs_remove_bin_file (f54->sysfs_dir, &test_report_data);
 	kobject_put (f54->sysfs_dir);
-
-	return;
 }
 
 
@@ -5338,8 +5331,6 @@ static void test_free_control_mem (void)
 	kfree (control.reg_182);
 	kfree (control.reg_188);
 	kfree (control.reg_223);
-
-	return;
 }
 
 static void test_set_data (void)
@@ -5457,8 +5448,6 @@ static void test_set_data (void)
 		f54->data_31.address = reg_addr;
 		reg_addr++;
 	}
-
-	return;
 }
 
 static int test_set_controls (void)
@@ -6655,8 +6644,6 @@ static void test_f54_set_regs (struct synaptics_rmi4_data *rmi4_data,
 			ii++) {
 		f54->intr_mask |= 1 << ii;
 	}
-
-	return;
 }
 
 static int test_f55_set_controls (void)
@@ -7150,8 +7137,6 @@ static void test_f55_set_regs (struct synaptics_rmi4_data *rmi4_data,
 	f55->control_base_addr = fd->ctrl_base_addr | (page << 8);
 	f55->data_base_addr = fd->data_base_addr | (page << 8);
 	f55->command_base_addr = fd->cmd_base_addr | (page << 8);
-
-	return;
 }
 
 static void test_f21_init (struct synaptics_rmi4_data *rmi4_data)
@@ -7295,8 +7280,6 @@ exit:
 	kfree (query_2);
 	kfree (query_5);
 	kfree (query_11);
-
-	return;
 }
 
 static void test_f21_set_regs (struct synaptics_rmi4_data *rmi4_data,
@@ -7315,8 +7298,6 @@ static void test_f21_set_regs (struct synaptics_rmi4_data *rmi4_data,
 	f21->control_base_addr = fd->ctrl_base_addr | (page << 8);
 	f21->data_base_addr = fd->data_base_addr | (page << 8);
 	f21->command_base_addr = fd->cmd_base_addr | (page << 8);
-
-	return;
 }
 
 static int test_scan_pdt (void)
@@ -7557,8 +7538,6 @@ static void synaptics_rmi4_test_remove (struct synaptics_rmi4_data *rmi4_data)
 
 exit:
 	complete (&test_remove_complete);
-
-	return;
 }
 
 static void synaptics_rmi4_test_reset (struct synaptics_rmi4_data *rmi4_data)
@@ -7681,8 +7660,6 @@ static void __exit rmi4_test_module_exit (void)
 
 
 	remove_proc_entry ("tp_data_dump", NULL);
-
-	return;
 }
 
 module_init (rmi4_test_module_init);
