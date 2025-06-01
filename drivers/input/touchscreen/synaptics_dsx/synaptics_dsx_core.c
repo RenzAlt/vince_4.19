@@ -157,7 +157,7 @@ extern int get_tddi_lockdown_data (unsigned char *lockdown_data, unsigned short 
 static int synaptics_rmi4_check_status (struct synaptics_rmi4_data *rmi4_data,
 		bool *was_in_bl_mode);
 static int synaptics_rmi4_free_fingers (struct synaptics_rmi4_data *rmi4_data);
-static void synaptics_rmi4_set_configured(struct synaptics_rmi4_data *rmi4_data);
+static int synaptics_rmi4_set_configured(struct synaptics_rmi4_data *rmi4_data);
 static int synaptics_rmi4_reset_device (struct synaptics_rmi4_data *rmi4_data,
 		bool rebuild);
 
@@ -2946,8 +2946,6 @@ static void synaptics_rmi4_f1a_kfree (struct synaptics_rmi4_fn *fhandler)
 		kfree (f1a);
 		fhandler->data = NULL;
 	}
-
-	return;
 }
 
 static int synaptics_rmi4_f1a_init (struct synaptics_rmi4_data *rmi4_data,
@@ -3004,8 +3002,6 @@ static void synaptics_rmi4_empty_fn_list (struct synaptics_rmi4_data *rmi4_data)
 		}
 	}
 	INIT_LIST_HEAD (&rmi->support_fn_list);
-
-	return;
 }
 
 static int synaptics_rmi4_check_status (struct synaptics_rmi4_data *rmi4_data,
@@ -3052,7 +3048,7 @@ static int synaptics_rmi4_check_status (struct synaptics_rmi4_data *rmi4_data,
 	return 0;
 }
 
-static void synaptics_rmi4_set_configured (struct synaptics_rmi4_data *rmi4_data)
+static int synaptics_rmi4_set_configured (struct synaptics_rmi4_data *rmi4_data)
 {
 	int retval;
 	unsigned char *device_ctrl = NULL;
@@ -3089,7 +3085,7 @@ static void synaptics_rmi4_set_configured (struct synaptics_rmi4_data *rmi4_data
 
 exit:
 	kfree(device_ctrl);
-	return;
+	return retval;
 }
 
 static int synaptics_rmi4_alloc_fh (struct synaptics_rmi4_fn **fhandler,
@@ -3546,8 +3542,6 @@ static void synaptics_rmi4_set_params (struct synaptics_rmi4_data *rmi4_data)
 		set_bit (KEY_WAKEUP, rmi4_data->input_dev->keybit);
 		input_set_capability (rmi4_data->input_dev, EV_KEY, KEY_WAKEUP);
 	}
-
-	return;
 }
 
 static int synaptics_rmi4_set_input_dev (struct synaptics_rmi4_data *rmi4_data)
@@ -3990,23 +3984,18 @@ static void synaptics_rmi4_rebuild_work (struct work_struct *work)
 			if (exp_fhandler->exp_fn->init != NULL)
 				exp_fhandler->exp_fn->init (rmi4_data);
 	}
-
-	retval = 0;
-
 exit:
 	synaptics_rmi4_irq_enable (rmi4_data, true, false);
 
 	mutex_unlock (&exp_data.mutex);
 
 	mutex_unlock (&(rmi4_data->rmi4_reset_mutex));
-
-	return;
 }
 
 static int synaptics_rmi4_reset_device (struct synaptics_rmi4_data *rmi4_data,
 		bool rebuild)
 {
-	int retval;
+	int retval = 0;
 	struct synaptics_rmi4_exp_fhandler *exp_fhandler;
 
 	mutex_lock (&(rmi4_data->rmi4_reset_mutex));
@@ -4075,7 +4064,7 @@ static void synaptics_rmi4_reset_work (struct work_struct *work)
 			dev_err (rmi4_data->pdev->dev.parent,
 					"%s: Timed out waiting for FB ready\n",
 					__func__);
-			return;
+			goto err;
 		}
 	}
 
@@ -4089,12 +4078,16 @@ static void synaptics_rmi4_reset_work (struct work_struct *work)
 	}
 
 	mutex_unlock (&rmi4_data->rmi4_exp_init_mutex);
+err:
+ 
+	dev_err(rmi4_data->pdev->dev.parent,
+		"%s: Timed out waiting for FB ready\n",
+		__func__);
 
-	return;
 }
 #endif
 
-static void synaptics_rmi4_sleep_enable (struct synaptics_rmi4_data *rmi4_data,
+static int synaptics_rmi4_sleep_enable (struct synaptics_rmi4_data *rmi4_data,
 		bool enable)
 {
 	int retval;
@@ -4139,7 +4132,7 @@ static void synaptics_rmi4_sleep_enable (struct synaptics_rmi4_data *rmi4_data,
 
 exit:
 	kfree(device_ctrl);
-	return;
+	return retval;
 }
 
 static void synaptics_rmi4_exp_fn_work (struct work_struct *work)
@@ -4171,8 +4164,6 @@ static void synaptics_rmi4_exp_fn_work (struct work_struct *work)
 	mutex_unlock (&exp_data.mutex);
 	mutex_unlock (&rmi4_data->rmi4_reset_mutex);
 	mutex_unlock (&rmi4_data->rmi4_exp_init_mutex);
-
-	return;
 }
 
 void synaptics_rmi4_new_function (struct synaptics_rmi4_exp_fn *exp_fn,
@@ -4216,8 +4207,6 @@ exit:
 				&exp_data.work,
 				msecs_to_jiffies (EXP_FN_WORK_DELAY_MS));
 	}
-
-	return;
 }
 EXPORT_SYMBOL (synaptics_rmi4_new_function);
 
@@ -4660,7 +4649,7 @@ static int synaptics_rmi4_fb_notifier_cb (struct notifier_block *self,
 #endif
 
 #ifdef USE_EARLYSUSPEND
-static void synaptics_rmi4_early_suspend (struct early_suspend *h)
+static int synaptics_rmi4_early_suspend (struct early_suspend *h)
 {
 	struct synaptics_rmi4_exp_fhandler *exp_fhandler;
 	struct synaptics_rmi4_data *rmi4_data =
@@ -4669,7 +4658,7 @@ static void synaptics_rmi4_early_suspend (struct early_suspend *h)
 	unsigned char device_ctrl;
 
 	if (rmi4_data->stay_awake)
-		return;
+		return retval;
 
 
 	if (rmi4_data->enable_wakeup_gesture) {
@@ -4719,10 +4708,10 @@ exit:
 
 	rmi4_data->suspend = true;
 
-	return;
+	return retval;
 }
 
-static void synaptics_rmi4_late_resume (struct early_suspend *h)
+static int synaptics_rmi4_late_resume (struct early_suspend *h)
 {
 #ifdef FB_READY_RESET
 	int retval;
@@ -4733,7 +4722,7 @@ static void synaptics_rmi4_late_resume (struct early_suspend *h)
 			early_suspend);
 
 	if (rmi4_data->stay_awake)
-		return;
+		return retval;
 
 	if (rmi4_data->enable_wakeup_gesture) {
 		disable_irq_wake (rmi4_data->irq);
@@ -4768,7 +4757,7 @@ exit:
 
 	rmi4_data->suspend = false;
 
-	return;
+	return retval;
 }
 #endif
 
@@ -4932,11 +4921,9 @@ static void __exit synaptics_rmi4_exit (void)
 	platform_driver_unregister (&synaptics_rmi4_driver);
 
 	synaptics_rmi4_bus_exit ();
-
-	return;
 }
 
-module_init (synaptics_rmi4_init);
+late_initcall (synaptics_rmi4_init);
 module_exit (synaptics_rmi4_exit);
 
 MODULE_AUTHOR ("Synaptics, Inc.");
