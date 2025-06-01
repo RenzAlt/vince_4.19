@@ -3957,93 +3957,6 @@ exit:
 	return retval;
 }
 
-#if defined(SYNAPTICS_LOCK_DOWN_INFO)
-static int fwu_do_read_customer_serialization_data (void)
-{
-	int ii;
-	int retval = 0;
-	int block_count = 0;
-	char temp[40] = {0};
-	struct synaptics_rmi4_data *rmi4_data = fwu->rmi4_data;
-
-	if (rmi4_data->sensor_sleep) {
-		dev_err (rmi4_data->pdev->dev.parent,
-				"%s: Sensor sleeping\n",
-				__func__);
-		return -ENODEV;
-	}
-
-	if (!fwu->flash_properties.has_pm_config) {
-		dev_err (rmi4_data->pdev->dev.parent,
-				"%s: Permanent configuration not supported\n",
-				__func__);
-		return -EINVAL;
-	}
-
-	rmi4_data->stay_awake = true;
-
-	mutex_lock (&rmi4_data->rmi4_exp_init_mutex);
-
-	pr_notice ("%s: Start of customer serialization aquirement process\n", __func__);
-
-		retval = fwu_read_flash_status ();
-		if (retval < 0)
-			goto exit;
-/*
-		retval = fwu_enter_flash_prog ();
-		if (retval < 0)
-			goto exit;
-*/
-		fwu->config_area = PM_CONFIG_AREA;
-		block_count = fwu->blkcount.pm_config;
-		if (block_count == 0) {
-			dev_err (rmi4_data->pdev->dev.parent,
-					"%s: Invalid block count\n",
-					__func__);
-			goto exit;
-		}
-		fwu->config_size = fwu->block_size * block_count;
-		pr_notice ("%s: Block size = %d\n", __func__, fwu->block_size);
-		pr_notice ("%s: Permanent config block count = %d\n", __func__, block_count);
-		pr_notice ("%s: Permanent config size = %d\n", __func__, fwu->config_size);
-		dev_info (rmi4_data->pdev->dev.parent,
-				"%s: permanent config size = %d\n",
-				__func__, fwu->config_size);
-
-		retval = fwu_allocate_read_config_buf (fwu->config_size);
-		if (retval < 0) {
-
-			goto exit;
-		}
-
-		retval = fwu_read_f34_blocks (block_count,
-				CMD_READ_CONFIG);
-		if (retval < 0) {
-
-			goto exit;
-		}
-
-		for (ii = 0; ii < 10; ii++)
-			pr_notice ("%s: Permanent config data[%d] = 0x%02x\n", __func__, ii, fwu->read_config_buf[ii]);
-
- sprintf (temp, "%02x%02x%02x%02x%02x%02x%02x%02x", fwu->read_config_buf[0], fwu->read_config_buf[1], fwu->read_config_buf[2], fwu->read_config_buf[3], fwu->read_config_buf[4], fwu->read_config_buf[5], fwu->read_config_buf[6], fwu->read_config_buf[7]);
-printk ("tp_lockdown info  : %s\n", temp);
-strcpy (tp_lockdown_info, temp);
-
-
-
-exit:
-
-	pr_notice ("%s: End of customer serialization acquirement process\n", __func__);
-
-	mutex_unlock (&rmi4_data->rmi4_exp_init_mutex);
-
-	rmi4_data->stay_awake = false;
-
-	return retval;
-}
-#endif
-
 #ifdef SYNA_TDDI
 static int fwu_do_read_tddi_lockdown_data (void)
 {
@@ -4745,20 +4658,13 @@ exit:
 	pr_notice ("%s: End of reflash process\n", __func__);
 
 	mutex_unlock (&rmi4_data->rmi4_exp_init_mutex);
-       synaptics_rmi4_reg_read (rmi4_data,
+    synaptics_rmi4_reg_read (rmi4_data,
 			0x000c,
 			config_ver,
 			1);
 	printk ("config_ver info =%02x\n", config_ver[0]);
-
-
-	if ((tp_lockdown_info[6] == '0') && (tp_lockdown_info[7] == '1'))
-		strcpy (tp_info_summary, "[Vendor]Tianma (G6.0), [IC]TD4310 (synaptics), [FW]Ver");
-	else if ((tp_lockdown_info[6] == '0') && (tp_lockdown_info[7] == '2'))
-		strcpy (tp_info_summary, "[Vendor]Tianma (G5.5), [IC]TD4310 (synaptics), [FW]Ver");
-	sprintf (tp_temp_info, "%02x", config_ver[0]);
-	strcat (tp_info_summary, tp_temp_info);
-	strcat (tp_info_summary, "\0");
+	if (strstr(g_lcd_id,"td4310") != NULL) {
+	}
 
 	rmi4_data->stay_awake = false;
 
