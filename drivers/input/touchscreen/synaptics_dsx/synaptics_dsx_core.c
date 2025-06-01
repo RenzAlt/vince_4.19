@@ -189,9 +189,9 @@ static int synaptics_rmi4_fb_notifier_cb (struct notifier_block *self,
 #endif
 
 #ifdef USE_EARLYSUSPEND
-static void synaptics_rmi4_early_suspend (struct early_suspend *h);
+static int synaptics_rmi4_early_suspend (struct early_suspend *h);
 
-static void synaptics_rmi4_late_resume (struct early_suspend *h);
+static int synaptics_rmi4_late_resume (struct early_suspend *h);
 #endif
 
 static int synaptics_rmi4_suspend (struct device *dev);
@@ -766,7 +766,7 @@ static ssize_t synaptics_rmi4_f01_reset_store (struct device *dev,
 	unsigned int reset;
 	struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata (dev);
 
-	if (sscanf (buf, "%u", &reset) != 1)
+	if (kstrtouint(buf, 10, &reset) != 1)
 		return -EINVAL;
 
 	if (reset != 1)
@@ -846,7 +846,7 @@ static ssize_t synaptics_rmi4_0dbutton_store (struct device *dev,
 
 	rmi = &(rmi4_data->rmi4_mod_info);
 
-	if (sscanf (buf, "%u", &input) != 1)
+	if (kstrtouint(buf, 10, &input) != 1)
 		return -EINVAL;
 
 	input = input > 0 ? 1 : 0;
@@ -892,7 +892,7 @@ static ssize_t synaptics_rmi4_suspend_store (struct device *dev,
 {
 	unsigned int input;
 
-	if (sscanf (buf, "%u", &input) != 1)
+	if (kstrtouint(buf, 10, &input) != 1)
 		return -EINVAL;
 
 	if (input == 1)
@@ -922,7 +922,7 @@ static ssize_t synaptics_rmi4_wake_gesture_store (struct device *dev,
 	struct synaptics_rmi4_data *rmi4_data = dev_get_drvdata (dev);
 	unsigned int input ;
 
-	if (sscanf (buf, "%u", &input) != 1)
+	if (kstrtouint(buf, 10, &input) != 1)
 		return -EINVAL;
 
 	if (synaptics_gesture_func_on)
@@ -942,7 +942,7 @@ static ssize_t synaptics_rmi4_synad_pid_store (struct device *dev,
 {
 	unsigned int input;
 
-	if (sscanf (buf, "%u", &input) != 1)
+	if (kstrtouint(buf, 10, &input) != 1)
 		return -EINVAL;
 
 	synad_pid = input;
@@ -978,7 +978,7 @@ static ssize_t synaptics_rmi4_virtual_key_map_show (struct kobject *kobj,
 	return count;
 }
 
-static void synaptics_rmi4_f11_wg (struct synaptics_rmi4_data *rmi4_data,
+static int synaptics_rmi4_f11_wg (struct synaptics_rmi4_data *rmi4_data,
 		bool enable)
 {
 	int retval;
@@ -1001,7 +1001,7 @@ static void synaptics_rmi4_f11_wg (struct synaptics_rmi4_data *rmi4_data,
 		dev_err (rmi4_data->pdev->dev.parent,
 				"%s: Failed to change reporting mode\n",
 				__func__);
-		return;
+		return retval;
 	}
 
 	reporting_control = (reporting_control & ~MASK_3BIT);
@@ -1018,13 +1018,13 @@ static void synaptics_rmi4_f11_wg (struct synaptics_rmi4_data *rmi4_data,
 		dev_err (rmi4_data->pdev->dev.parent,
 				"%s: Failed to change reporting mode\n",
 				__func__);
-		return;
+		return retval;
 	}
 
-	return;
+	return retval;
 }
 
-static void synaptics_rmi4_f12_wg (struct synaptics_rmi4_data *rmi4_data,
+static int synaptics_rmi4_f12_wg (struct synaptics_rmi4_data *rmi4_data,
 		bool enable)
 {
 	int retval;
@@ -1052,7 +1052,7 @@ static void synaptics_rmi4_f12_wg (struct synaptics_rmi4_data *rmi4_data,
 		dev_err (rmi4_data->pdev->dev.parent,
 				"%s: Failed to change reporting mode\n",
 				__func__);
-		return;
+		return retval;
 	}
 
 	if (enable)
@@ -1068,10 +1068,10 @@ static void synaptics_rmi4_f12_wg (struct synaptics_rmi4_data *rmi4_data,
 		dev_err (rmi4_data->pdev->dev.parent,
 				"%s: Failed to change reporting mode\n",
 				__func__);
-		return;
+		return retval;
 	}
 
-	return;
+	return retval;
 }
 
 static void synaptics_rmi4_wakeup_gesture (struct synaptics_rmi4_data *rmi4_data,
@@ -1081,8 +1081,6 @@ static void synaptics_rmi4_wakeup_gesture (struct synaptics_rmi4_data *rmi4_data
 		synaptics_rmi4_f11_wg (rmi4_data, enable);
 	else if (rmi4_data->f12_wakeup_gesture)
 		synaptics_rmi4_f12_wg (rmi4_data, enable);
-
-	return;
 }
 
 static int synaptics_rmi4_f11_abs_report (struct synaptics_rmi4_data *rmi4_data,
@@ -1581,7 +1579,7 @@ static int synaptics_rmi4_f12_abs_report (struct synaptics_rmi4_data *rmi4_data,
 	return touch_count;
 }
 
-static void synaptics_rmi4_f1a_report (struct synaptics_rmi4_data *rmi4_data,
+static int synaptics_rmi4_f1a_report (struct synaptics_rmi4_data *rmi4_data,
 		struct synaptics_rmi4_fn *fhandler)
 {
 	int retval;
@@ -1617,7 +1615,7 @@ static void synaptics_rmi4_f1a_report (struct synaptics_rmi4_data *rmi4_data,
 		dev_err (rmi4_data->pdev->dev.parent,
 				"%s: Failed to read button data registers\n",
 				__func__);
-		return;
+		return retval;
 	}
 
 	data = f1a->button_data_buffer;
@@ -1682,7 +1680,7 @@ static void synaptics_rmi4_f1a_report (struct synaptics_rmi4_data *rmi4_data,
 
 	mutex_unlock (&(rmi4_data->rmi4_report_mutex));
 
-	return;
+	return retval;
 }
 
 static void synaptics_rmi4_report_touch (struct synaptics_rmi4_data *rmi4_data,
@@ -1725,11 +1723,9 @@ static void synaptics_rmi4_report_touch (struct synaptics_rmi4_data *rmi4_data,
 	default:
 		break;
 	}
-
-	return;
 }
 
-static void synaptics_rmi4_sensor_report (struct synaptics_rmi4_data *rmi4_data,
+static int synaptics_rmi4_sensor_report (struct synaptics_rmi4_data *rmi4_data,
 		bool report)
 {
 	int retval;
@@ -1971,8 +1967,6 @@ static void synaptics_rmi4_set_intr_mask (struct synaptics_rmi4_fn *fhandler,
 			ii < (fd->intr_src_count + intr_offset);
 			ii++)
 		fhandler->intr_mask |= 1 << ii;
-
-	return;
 }
 
 static int synaptics_rmi4_f01_init (struct synaptics_rmi4_data *rmi4_data,
