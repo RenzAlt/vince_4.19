@@ -771,8 +771,6 @@ static void rmidev_device_cleanup(struct rmidev_data *dev_data)
 				"%s: rmidev device removed\n",
 				__func__);
 	}
-
-	return;
 }
 
 static char *rmi_char_devnode(struct device *dev, umode_t *mode)
@@ -1041,8 +1039,6 @@ static void rmidev_remove_device(struct synaptics_rmi4_data *rmi4_data)
 
 exit:
 	complete(&rmidev_remove_complete);
-
-	return;
 }
 
 static struct synaptics_rmi4_exp_fn rmidev_module = {
@@ -1070,8 +1066,6 @@ static void __exit rmidev_module_exit(void)
 	synaptics_rmi4_new_function(&rmidev_module, false);
 
 	wait_for_completion(&rmidev_remove_complete);
-
-	return;
 }
 
 module_init(rmidev_module_init);

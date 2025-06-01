@@ -898,8 +898,6 @@ static void calculate_checksum (unsigned short *data, unsigned long len,
 	}
 
 	*result = sum2 << 16 | sum1;
-
-	return;
 }
 
 static void convert_to_little_endian (unsigned char *dest, unsigned long src)
@@ -908,8 +906,6 @@ static void convert_to_little_endian (unsigned char *dest, unsigned long src)
 	dest[1] = (unsigned char) ((src >> 8) & 0xff);
 	dest[2] = (unsigned char) ((src >> 16) & 0xff);
 	dest[3] = (unsigned char) ((src >> 24) & 0xff);
-
-	return;
 }
 
 static unsigned int le_to_uint (const unsigned char *ptr)
@@ -1047,8 +1043,6 @@ static void fwu_compare_partition_tables (void)
 		if (fwu->phyaddr.guest_code != fwu->img.phyaddr.guest_code)
 			fwu->new_partition_table = true;
 	}
-
-	return;
 }
 
 static void fwu_parse_partition_table (const unsigned char *partition_table,
@@ -1161,8 +1155,6 @@ static void fwu_parse_partition_table (const unsigned char *partition_table,
 			break;
 		};
 	}
-
-	return;
 }
 
 static void fwu_parse_image_header_10_utility (const unsigned char *image)
@@ -1196,8 +1188,6 @@ static void fwu_parse_image_header_10_utility (const unsigned char *image)
 			break;
 		};
 	}
-
-	return;
 }
 
 static void fwu_parse_image_header_10_bootloader (const unsigned char *image)
@@ -1238,8 +1228,6 @@ static void fwu_parse_image_header_10_bootloader (const unsigned char *image)
 			break;
 		};
 	}
-
-	return;
 }
 
 static void fwu_parse_image_header_10 (void)
@@ -1327,8 +1315,6 @@ static void fwu_parse_image_header_10 (void)
 			break;
 		}
 	}
-
-	return;
 }
 
 static void fwu_parse_image_header_05_06 (void)
@@ -1406,8 +1392,6 @@ static void fwu_parse_image_header_05_06 (void)
 
 	fwu->img.lockdown.size = LOCKDOWN_SIZE;
 	fwu->img.lockdown.data = image + IMAGE_AREA_OFFSET - LOCKDOWN_SIZE;
-
-	return;
 }
 
 static int fwu_parse_image_info (void)
@@ -5121,10 +5105,6 @@ static void fwu_startup_fw_update_work (struct work_struct *work)
 #endif
 
 	synaptics_fw_updater (NULL);
-
-
-
-	return;
 }
 #endif
 
@@ -5461,9 +5441,8 @@ static ssize_t fwu_sysfs_image_size_store (struct device *dev,
 				"%s: Failed to alloc mem for image data\n",
 				__func__);
 		retval = -ENOMEM;
-	} else {
-		retval = count;
 	}
+	retval = count;
 
 
 
@@ -5976,8 +5955,6 @@ static void synaptics_rmi4_fwu_remove (struct synaptics_rmi4_data *rmi4_data)
 
 exit:
 	complete (&fwu_remove_complete);
-
-	return;
 }
 
 static void synaptics_rmi4_fwu_reset (struct synaptics_rmi4_data *rmi4_data)
@@ -6030,8 +6007,6 @@ static void __exit rmi4_fw_update_module_exit (void)
 	synaptics_rmi4_new_function (&fwu_module, false);
 
 	wait_for_completion (&fwu_remove_complete);
-
-	return;
 }
 
 module_init (rmi4_fw_update_module_init);

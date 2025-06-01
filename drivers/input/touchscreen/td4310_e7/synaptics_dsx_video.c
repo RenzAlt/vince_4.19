@@ -315,16 +315,12 @@ static void synaptics_rmi4_video_remove(struct synaptics_rmi4_data *rmi4_data)
 
 exit:
 	complete(&video_remove_complete);
-
-	return;
 }
 
 static void synaptics_rmi4_video_reset(struct synaptics_rmi4_data *rmi4_data)
 {
 	if (!video)
 		synaptics_rmi4_video_init(rmi4_data);
-
-	return;
 }
 
 #ifdef RMI_DCS_SUSPEND_RESUME
@@ -347,8 +343,6 @@ static void synaptics_rmi4_video_suspend(struct synaptics_rmi4_data *rmi4_data)
 			return;
 		msleep(suspend_sequence[ii].wait_time);
 	}
-
-	return;
 }
 
 static void synaptics_rmi4_video_resume(struct synaptics_rmi4_data *rmi4_data)
@@ -370,8 +364,6 @@ static void synaptics_rmi4_video_resume(struct synaptics_rmi4_data *rmi4_data)
 			return;
 		msleep(resume_sequence[ii].wait_time);
 	}
-
-	return;
 }
 #endif
 
@@ -405,8 +397,6 @@ static void __exit rmi4_video_module_exit(void)
 	synaptics_rmi4_new_function(&video_module, false);
 
 	wait_for_completion(&video_remove_complete);
-
-	return;
 }
 
 module_init(rmi4_video_module_init);

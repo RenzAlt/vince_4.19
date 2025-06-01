@@ -273,8 +273,6 @@ static void synaptics_rmi4_i2c_check_addr(struct synaptics_rmi4_data *rmi4_data,
 		hw_if.board_data->i2c_addr = hw_if.board_data->ub_i2c_addr;
 	else
 		hw_if.board_data->i2c_addr = i2c->addr;
-
-	return;
 }
 
 static int synaptics_rmi4_i2c_set_page(struct synaptics_rmi4_data *rmi4_data,
@@ -498,8 +496,6 @@ static struct synaptics_dsx_bus_access bus_access = {
 static void synaptics_rmi4_i2c_dev_release(struct device *dev)
 {
 	kfree(synaptics_dsx_i2c_device);
-
-	return;
 }
 
 static int synaptics_rmi4_i2c_probe(struct i2c_client *client,
@@ -595,7 +591,7 @@ static const struct i2c_device_id synaptics_rmi4_id_table[] = {
 MODULE_DEVICE_TABLE(i2c, synaptics_rmi4_id_table);
 
 #ifdef CONFIG_OF
-static struct of_device_id synaptics_rmi4_of_match_table[] = {
+static const struct of_device_id synaptics_rmi4_of_match_table[] = {
 	{
 		.compatible = "synaptics,dsx-i2c",
 	},
@@ -628,8 +624,6 @@ void synaptics_rmi4_bus_exit(void)
 	kfree(wr_buf);
 
 	i2c_del_driver(&synaptics_rmi4_i2c_driver);
-
-	return;
 }
 EXPORT_SYMBOL(synaptics_rmi4_bus_exit);
 
