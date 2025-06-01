@@ -322,7 +322,7 @@ static ssize_t rmidev_sysfs_open_store(struct device *dev,
 	unsigned int input;
 	struct synaptics_rmi4_data *rmi4_data = rmidev->rmi4_data;
 
-	if (sscanf(buf, "%u", &input) != 1)
+	if (kstrtouint(buf, 10, &input) != 1)
 		return -EINVAL;
 
 	if (input != 1)
@@ -353,7 +353,7 @@ static ssize_t rmidev_sysfs_release_store(struct device *dev,
 	unsigned int input;
 	struct synaptics_rmi4_data *rmi4_data = rmidev->rmi4_data;
 
-	if (sscanf(buf, "%u", &input) != 1)
+	if (kstrtouint(buf, 10, &input) != 1)
 		return -EINVAL;
 
 	if (input != 1)
@@ -393,7 +393,7 @@ static ssize_t rmidev_sysfs_pid_store(struct device *dev,
 	unsigned int input;
 	struct synaptics_rmi4_data *rmi4_data = rmidev->rmi4_data;
 
-	if (sscanf(buf, "%u", &input) != 1)
+	if (kstrtouint(buf, 10, &input) != 1)
 		return -EINVAL;
 
 	rmidev->pid = input;
@@ -416,7 +416,7 @@ static ssize_t rmidev_sysfs_term_store(struct device *dev,
 {
 	unsigned int input;
 
-	if (sscanf(buf, "%u", &input) != 1)
+	if (kstrtouint(buf, 10, &input) != 1)
 		return -EINVAL;
 
 	if (input != 1)
@@ -439,7 +439,7 @@ static ssize_t rmidev_sysfs_intr_mask_store(struct device *dev,
 {
 	unsigned int input;
 
-	if (sscanf(buf, "%u", &input) != 1)
+	if (kstrtouint(buf, 10, &input) != 1)
 		return -EINVAL;
 
 	rmidev->intr_mask = (unsigned char)input;
@@ -458,7 +458,7 @@ static ssize_t rmidev_sysfs_concurrent_store(struct device *dev,
 {
 	unsigned int input;
 
-	if (sscanf(buf, "%u", &input) != 1)
+	if (kstrtouint(buf, 10, &input) != 1)
 		return -EINVAL;
 
 	rmidev->concurrent = input > 0 ? true : false;
