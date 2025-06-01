@@ -25,6 +25,13 @@
 #define DEFAULT_MDP_TRANSFER_TIME 14000
 
 #define VSYNC_DELAY msecs_to_jiffies(17)
+
+char g_lcd_id[128];
+struct mdss_dsi_ctrl_pdata *ctrl_pdata_whitepoint;
+EXPORT_SYMBOL(g_lcd_id);
+
+bool ESD_TE_status = false;
+
 #ifndef CONFIG_BACKLIGHT_CLASS_DEVICE
 DEFINE_LED_TRIGGER(bl_led_trigger);
 #endif
@@ -1834,6 +1841,11 @@ static int mdss_dsi_gen_read_status(struct mdss_dsi_ctrl_pdata *ctrl_pdata)
 	if (!mdss_dsi_cmp_panel_reg_v2(ctrl_pdata)) {
 		pr_err("%s: Read back value from panel is incorrect\n",
 							__func__);
+
+	if ((strstr(g_lcd_id, "nt36672") != NULL) || (strstr(g_lcd_id, "td4310") != NULL)) {
+			ESD_TE_status = true;
+	}
+
 		return -EINVAL;
 	} else {
 		return 1;
@@ -3026,6 +3038,65 @@ error:
 	return -EINVAL;
 }
 
+static ssize_t msm_fb_lcd_name(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	ssize_t ret = 0;
+	sprintf(buf, "%s\n", g_lcd_id);
+	ret = strlen(buf) + 1;
+	return ret;
+}
+
+static DEVICE_ATTR(lcd_name,0664,msm_fb_lcd_name,NULL);
+static struct kobject *msm_lcd_name;
+static int msm_lcd_name_create_sysfs(void){
+   int ret;
+   msm_lcd_name=kobject_create_and_add("android_lcd",NULL);
+   if(msm_lcd_name==NULL){
+     pr_info("msm_lcd_name_create_sysfs_ failed\n");
+     ret=-ENOMEM;
+     return ret;
+   }
+   ret=sysfs_create_file(msm_lcd_name,&dev_attr_lcd_name.attr);
+   if(ret){
+    pr_info("%s failed \n",__func__);
+    kobject_del(msm_lcd_name);
+   }
+   return 0;
+}
+
+static ssize_t mdss_fb_get_whitepoint(struct device *dev,
+				struct device_attribute *attr, char *buf)
+{
+	struct mdss_dsi_ctrl_pdata *ctrl = NULL;
+	int val0 =0;
+	int val1 = 0;
+	ssize_t ret = 0;
+
+	mdss_dsi_read_reg(ctrl,0xa1,&val0,&val1);
+	ret = snprintf(buf, PAGE_SIZE, "val0=%d,val1=%d\n",val0,val1);
+
+	return ret;
+}
+
+static DEVICE_ATTR(whitepoint, 0644, mdss_fb_get_whitepoint,NULL );
+static struct kobject *msm_whitepoint;
+static int msm_whitepoint_create_sysfs(void){
+   int ret;
+   msm_whitepoint=kobject_create_and_add("android_whitepoint",NULL);
+   if(msm_whitepoint==NULL){
+     pr_info("msm_whitepoint_create_sysfs_ failed\n");
+     ret=-ENOMEM;
+     return ret;
+   }
+   ret=sysfs_create_file(msm_whitepoint,&dev_attr_whitepoint.attr);
+   if(ret){
+    pr_info("%s failed \n",__func__);
+    kobject_del(msm_whitepoint);
+   }
+   return 0;
+}
+
 int mdss_dsi_panel_init(struct device_node *node,
 	struct mdss_dsi_ctrl_pdata *ctrl_pdata,
 	int ndx)
@@ -3051,6 +3122,10 @@ int mdss_dsi_panel_init(struct device_node *node,
 		pr_info("%s: Panel Name = %s\n", __func__, panel_name);
 		strlcpy(&pinfo->panel_name[0], panel_name, MDSS_MAX_PANEL_LEN);
 	}
+
+	/*add for device name node */
+	strcpy(g_lcd_id,panel_name);
+
 	rc = mdss_panel_parse_dt(node, ctrl_pdata);
 	if (rc) {
 		pr_err("%s:%d panel dt parse failed\n", __func__, __LINE__);
@@ -3070,6 +3145,9 @@ int mdss_dsi_panel_init(struct device_node *node,
 	ctrl_pdata->panel_data.apply_display_setting =
 			mdss_dsi_panel_apply_display_setting;
 	ctrl_pdata->switch_mode = mdss_dsi_panel_switch_mode;
+	ctrl_pdata_whitepoint = ctrl_pdata;
+	msm_lcd_name_create_sysfs();
+	msm_whitepoint_create_sysfs();
 
 	return 0;
 }

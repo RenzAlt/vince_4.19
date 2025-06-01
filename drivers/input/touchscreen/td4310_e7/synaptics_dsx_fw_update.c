@@ -136,6 +136,8 @@
 #define ENTER_FLASH_PROG_WAIT_MS 20
 #define READ_CONFIG_WAIT_MS 20
 
+extern char g_lcd_id[128];
+
 static int fwu_do_reflash (void);
 
 static int fwu_recovery_check_status (void);
@@ -4525,7 +4527,7 @@ static int fwu_start_reflash (void)
 	char tp_temp_info[80];
 
 	if (rmi4_data->sensor_sleep) {
-		dev_err (rmi4_data->pdev->dev.parent,
+		dev_err(rmi4_data->pdev->dev.parent,
 				"%s: Sensor sleeping\n",
 				__func__);
 		return -ENODEV;
@@ -4533,35 +4535,42 @@ static int fwu_start_reflash (void)
 
 	rmi4_data->stay_awake = true;
 
-	mutex_lock (&rmi4_data->rmi4_exp_init_mutex);
+	mutex_lock(&rmi4_data->rmi4_exp_init_mutex);
 
-	pr_notice ("%s: Start of reflash process\n", __func__);
+	pr_notice("%s: Start of reflash process\n", __func__);
 
 	if (fwu->image == NULL) {
-		retval = secure_memcpy (fwu->image_name, MAX_IMAGE_NAME_LEN,
-				FW_IMAGE_NAME, sizeof (FW_IMAGE_NAME),
-				sizeof (FW_IMAGE_NAME));
+		if (strstr(g_lcd_id,"td4310") != NULL) {
+			retval = secure_memcpy(fwu->image_name, MAX_IMAGE_NAME_LEN,
+					FW_IMAGE_NAME, sizeof(FW_IMAGE_NAME),
+					sizeof(FW_IMAGE_NAME));
+
+		} else {
+			retval = secure_memcpy(fwu->image_name, MAX_IMAGE_NAME_LEN,
+					FW_IMAGE_NAME, sizeof(FW_IMAGE_NAME),
+					sizeof(FW_IMAGE_NAME));
+		}
 		if (retval < 0) {
-			dev_err (rmi4_data->pdev->dev.parent,
+			dev_err(rmi4_data->pdev->dev.parent,
 					"%s: Failed to copy image file name\n",
 					__func__);
 			goto exit;
 		}
-		dev_dbg (rmi4_data->pdev->dev.parent,
+		dev_dbg(rmi4_data->pdev->dev.parent,
 				"%s: Requesting firmware image %s\n",
 				__func__, fwu->image_name);
 
-		retval = request_firmware (&fw_entry, fwu->image_name,
+		retval = request_firmware(&fw_entry, fwu->image_name,
 				rmi4_data->pdev->dev.parent);
 		if (retval != 0) {
-			dev_err (rmi4_data->pdev->dev.parent,
+			dev_err(rmi4_data->pdev->dev.parent,
 					"%s: Firmware image %s not available\n",
 					__func__, fwu->image_name);
 			retval = -EINVAL;
 			goto exit;
 		}
 
-		dev_dbg (rmi4_data->pdev->dev.parent,
+		dev_dbg(rmi4_data->pdev->dev.parent,
 				"%s: Firmware image size = %d\n",
 				__func__, (unsigned int)fw_entry->size);
 
