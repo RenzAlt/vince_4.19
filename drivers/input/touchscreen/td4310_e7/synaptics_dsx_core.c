@@ -4100,7 +4100,7 @@ static void synaptics_rmi4_reset_work (struct work_struct *work)
 }
 #endif
 
-static int synaptics_rmi4_sleep_enable (struct synaptics_rmi4_data *rmi4_data,
+static void synaptics_rmi4_sleep_enable (struct synaptics_rmi4_data *rmi4_data,
 		bool enable)
 {
 	int retval;
@@ -4145,7 +4145,7 @@ static int synaptics_rmi4_sleep_enable (struct synaptics_rmi4_data *rmi4_data,
 
 exit:
 	kfree(device_ctrl);
-	return retval;
+	return;
 }
 
 static void synaptics_rmi4_exp_fn_work (struct work_struct *work)
