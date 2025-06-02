@@ -1358,7 +1358,7 @@ source "drivers/input/touchscreen/nt36xxx/Kconfig"
 
 config TOUCHSCREEN_NT36672
 	bool "Novatek NT36672"
-	default y
+	default n
 	help
 	  Say Y here if you have a Novatek NT36672 touchscreen connected
 	  to your system.
